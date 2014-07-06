@@ -24,6 +24,10 @@ serialPort.setParams(SerialPort.BAUDRATE_115200,
 
 serialPort.addEventListener(new SerialPortReader())
 
+@volatile var bytePromise: Promise[Byte] = _
+@volatile var intPromise: Promise[Int] = _
+@volatile var done = false
+
 def writeArray(arr: Array[Byte]) {
     serialPort.writeBytes(arr)
 }
@@ -33,23 +37,6 @@ def writeInt(i: Int) {
     serialPort.writeInt(i >> 8)
 }
 
-def pinMode(pin: Byte, mode: Byte) {
-    // INPUT - 0; OUTPUT - 1
-    val command = Array[Byte](4, 1, 1, pin, mode)
-    //                        sz,ns,cmd,arg1,arg2
-    writeArray(command)
-}
-
-def digitalWrite(pin: Byte, value: Byte) {
-    // LOW - 0; HIGH - 1
-    val command = Array[Byte](4, 1, 2, pin, value)
-    //                        sz,ns,cmd,arg1,arg2
-    writeArray(command)
-}
-
-@volatile var bytePromise: Promise[Byte] = _
-@volatile var intPromise: Promise[Int] = _
-
 def awaitResult[T](f: Future[T]): T = {
     try {
         Await.result(f, 1.seconds)
@@ -58,68 +45,6 @@ def awaitResult[T](f: Future[T]): T = {
         case e: Throwable =>
             if (!done) throw e
             else throw new RuntimeException("None; Program Stopped.")
-    }
-}
-
-def digitalRead(pin: Byte): Byte = {
-    val command = Array[Byte](3, 1, 3, pin)
-    //                        sz,ns,cmd,arg1
-    bytePromise = Promise()
-    writeArray(command)
-    awaitResult(bytePromise.future)
-}
-
-def analogRead(pin: Byte): Int = {
-    val command = Array[Byte](3, 1, 4, pin)
-    //                        sz,ns,cmd, arg1
-    intPromise = Promise()
-    writeArray(command)
-    awaitResult(intPromise.future)
-}
-
-def tone(pin: Byte, freq: Int) {
-    writeArray(Array[Byte](5, 1, 5, pin))
-    writeInt(freq)
-}
-
-def noTone(pin: Byte) {
-    writeArray(Array[Byte](3, 1, 6, pin))
-}
-
-object Servo {
-    // proxy for servo library
-    // namespace (ns) = 2
-    def attach(pin: Byte) {
-        val command = Array[Byte](3, 2, 1, pin)
-        //                        sz,ns,cmd,arg1
-        writeArray(command)
-    }
-
-    def write(angle: Byte) {
-        val command = Array[Byte](3, 2, 2, angle)
-        //                        sz,ns,cmd,arg1
-        writeArray(command)
-    }
-}
-
-val INPUT, LOW = 0.toByte
-val OUTPUT, HIGH = 1.toByte
-
-def delay(n: Int) = Thread.sleep(n)
-
-@volatile var done = false
-
-runInBackground {
-    pause(1)
-    readln("Enter to write")
-    runInBackground {
-        readln("Enter to close serial port")
-        done = true
-        serialPort.closePort()
-    }
-    setup()
-    while (!done) {
-        loop()
     }
 }
 
@@ -213,3 +138,86 @@ class SerialPortReader extends SerialPortEventListener {
 
 import language.implicitConversions
 implicit def i2b(i: Int) = i.toByte
+
+runInBackground {
+    pause(1)
+    readln("Enter to write")
+    runInBackground {
+        readln("Enter to close serial port")
+        done = true
+        serialPort.closePort()
+    }
+    setup()
+    while (!done) {
+        loop()
+    }
+}
+
+// API
+
+def pinMode(pin: Byte, mode: Byte) {
+    // INPUT - 0; OUTPUT - 1
+    val command = Array[Byte](4, 1, 1, pin, mode)
+    //                        sz,ns,cmd,arg1,arg2
+    writeArray(command)
+}
+
+def digitalWrite(pin: Byte, value: Byte) {
+    // LOW - 0; HIGH - 1
+    val command = Array[Byte](4, 1, 2, pin, value)
+    //                        sz,ns,cmd,arg1,arg2
+    writeArray(command)
+}
+
+def digitalRead(pin: Byte): Byte = {
+    val command = Array[Byte](3, 1, 3, pin)
+    //                        sz,ns,cmd,arg1
+    bytePromise = Promise()
+    writeArray(command)
+    awaitResult(bytePromise.future)
+}
+
+def analogRead(pin: Byte): Int = {
+    val command = Array[Byte](3, 1, 4, pin)
+    //                        sz,ns,cmd, arg1
+    intPromise = Promise()
+    writeArray(command)
+    awaitResult(intPromise.future)
+}
+
+def tone(pin: Byte, freq: Int) {
+    writeArray(Array[Byte](5, 1, 5, pin))
+    writeInt(freq)
+}
+
+def noTone(pin: Byte) {
+    writeArray(Array[Byte](3, 1, 6, pin))
+}
+
+object Servo {
+    // proxy for servo library
+    // namespace (ns) = 2
+    def attach(pin: Byte) {
+        val command = Array[Byte](3, 2, 1, pin)
+        //                        sz,ns,cmd,arg1
+        writeArray(command)
+    }
+
+    def write(angle: Byte) {
+        val command = Array[Byte](3, 2, 2, angle)
+        //                        sz,ns,cmd,arg1
+        writeArray(command)
+    }
+}
+
+val INPUT, LOW = 0.toByte
+val OUTPUT, HIGH = 1.toByte
+
+def delay(n: Int) = Thread.sleep(n)
+
+// uncomment setup and loop methods below to compile/run this file standalone
+//def setup() {
+//}
+//
+//def loop() {
+//}
