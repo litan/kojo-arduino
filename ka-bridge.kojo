@@ -14,6 +14,7 @@ println(s"Ports: ${names.toList}")
 val portName = names(0)
 val serialPort = new SerialPort(portName)
 println(s"Opening port: $portName")
+println("To continue, please wait for a message at the bottom of this window...")
 serialPort.openPort()
 serialPort.setParams(SerialPort.BAUDRATE_115200,
     SerialPort.DATABITS_8,
@@ -140,10 +141,10 @@ import language.implicitConversions
 implicit def i2b(i: Int) = i.toByte
 
 runInBackground {
-    pause(1)
-    readln("Enter to write")
+    pause(2)
+    readln("Hit 'Enter' to run program on Arduino.")
     runInBackground {
-        readln("Enter to close serial port")
+        readln("Hit 'Enter' to stop program.")
         done = true
         serialPort.closePort()
     }
@@ -175,6 +176,12 @@ def digitalRead(pin: Byte): Byte = {
     bytePromise = Promise()
     writeArray(command)
     awaitResult(bytePromise.future)
+}
+
+def analogWrite(pin: Byte, value: Byte) {
+    val command = Array[Byte](4, 1, 7, pin, value)
+    //                        sz,ns,cmd,arg1,arg2
+    writeArray(command)
 }
 
 def analogRead(pin: Byte): Int = {
