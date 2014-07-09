@@ -56,15 +56,7 @@ int len(const char str[]) {
 }
 
 void log(String msg) {
-  int len = msg.length();
-  Serial.write(OUT_PACK_HDR_SIZE + len);
-  outgoing_packet_hdr[0] = 3; // return value type
-  outgoing_packet_hdr[1] = 1; // ns
-  outgoing_packet_hdr[2] = -1; // cmd
-  writeArray(outgoing_packet_hdr, OUT_PACK_HDR_SIZE);
-  char buf[len+1];
-  msg.toCharArray(buf, len+1);
-  Serial.write(buf);
+  returnString(0, -1, msg);
 }
 
 byte readByte() {
@@ -84,13 +76,41 @@ void writeByte(byte b) {
   Serial.write(b);
 }
 
-void writeInt(int i) {
+void writeInt(unsigned int i) {
   Serial.write(i & 0x00FF);
   Serial.write(i >> 8);
 }
 
 void writeArray(byte arr[], int len) {
   Serial.write(arr, len);
+}
+
+void writeHeader(byte retType, byte ns, byte proc) {
+  outgoing_packet_hdr[0] = retType;
+  outgoing_packet_hdr[1] = ns;
+  outgoing_packet_hdr[2] = proc;
+  Serial.write(outgoing_packet_hdr, OUT_PACK_HDR_SIZE);
+}
+
+void returnByte(byte ns, byte proc, byte byteRet) {
+  Serial.write(OUT_PACK_HDR_SIZE + 1); // packet size
+  writeHeader(1, ns, proc);
+  writeByte(byteRet);
+}
+
+void returnInt(byte ns, byte proc, unsigned int intRet) {
+  Serial.write(OUT_PACK_HDR_SIZE + 2); // packet size
+  writeHeader(2, ns, proc);
+  writeInt(intRet);
+}
+
+void returnString(byte ns, byte proc, String msg) {
+  int len = msg.length();
+  Serial.write(OUT_PACK_HDR_SIZE + len);
+  writeHeader(3, ns, proc);
+  char buf[len+1];
+  msg.toCharArray(buf, len+1);
+  Serial.write(buf);
 }
 
 void dispatchCommand() {
@@ -100,6 +120,14 @@ void dispatchCommand() {
   byte ns = readByte();
   byte proc = readByte();
   switch (ns) {
+    case 0: // meta
+      switch (proc) {
+        case 1: // kojo ping
+          log(String("Bridge Ready"));
+          returnInt(0, 1, 0xF0F0);
+          break;
+      }
+      break;
     case 1: // inbuilt
       switch (proc) {
         case 1: // pinMode
@@ -109,24 +137,10 @@ void dispatchCommand() {
           digitalWrite(readByte(), readByte());
           break;
         case 3: // digitalRead
-          writeSize = OUT_PACK_HDR_SIZE + 1;
-          Serial.write(writeSize); // packet size
-          outgoing_packet_hdr[0] = 1; // return value type
-          outgoing_packet_hdr[1] = 1; // ns
-          outgoing_packet_hdr[2] = 3; // proc
-          byteRet = digitalRead(readByte()); // return value
-          writeArray(outgoing_packet_hdr, OUT_PACK_HDR_SIZE);
-          writeByte(byteRet);
+          returnByte(1, 3, digitalRead(readByte()));
           break;
         case 4: // analogRead
-          writeSize = OUT_PACK_HDR_SIZE + 2;
-          Serial.write(writeSize); // packet size
-          outgoing_packet_hdr[0] = 2; // return value type
-          outgoing_packet_hdr[1] = 1; // ns
-          outgoing_packet_hdr[2] = 4; // proc
-          intRet = analogRead(readByte()); // return value
-          Serial.write(outgoing_packet_hdr, OUT_PACK_HDR_SIZE);
-          writeInt(intRet);
+          returnInt(1, 4, analogRead(readByte()));
           break;
         case 5: // tone
           tone(readByte(), readInt());
