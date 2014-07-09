@@ -7,24 +7,10 @@ import concurrent.Future
 import concurrent.Await
 import concurrent.duration._
 import java.nio.ByteBuffer
+import java.util.prefs.Preferences
 
 clearOutput()
-val names = SerialPortList.getPortNames
-println(s"Ports: ${names.toList}")
-val portName = names(0)
-val serialPort = new SerialPort(portName)
-println(s"Opening port: $portName")
-println("To continue, please wait for a message at the bottom of this window...")
-serialPort.openPort()
-serialPort.setParams(SerialPort.BAUDRATE_115200,
-    SerialPort.DATABITS_8,
-    SerialPort.STOPBITS_1,
-    SerialPort.PARITY_NONE,
-    true,
-    true)
-
-serialPort.addEventListener(new SerialPortReader())
-
+@volatile var serialPort: SerialPort = _
 @volatile var bytePromise: Promise[Byte] = _
 @volatile var intPromise: Promise[Int] = _
 @volatile var done = false
@@ -123,7 +109,7 @@ class SerialPortReader extends SerialPortEventListener {
                 case 3 => // string
                     readByte; readByte
                     val msg = readString
-                    println(s"[Ard-Log] $msg")
+                    println(s"[Arduino-Log] $msg")
             }
             packetDone()
         }
@@ -141,10 +127,82 @@ import language.implicitConversions
 implicit def i2b(i: Int) = i.toByte
 
 runInBackground {
-    pause(2)
-    readln("Hit 'Enter' to run program on Arduino.")
+    def connect(portName: String) {
+        serialPort = new SerialPort(portName)
+        println(s"Opening port: $portName")
+        serialPort.openPort()
+        serialPort.setParams(SerialPort.BAUDRATE_115200,
+            SerialPort.DATABITS_8,
+            SerialPort.STOPBITS_1,
+            SerialPort.PARITY_NONE,
+            true,
+            true)
+
+        serialPort.addEventListener(new SerialPortReader())
+    }
+
+    def ping(): Boolean = {
+        val command = Array[Byte](2, 0, 1)
+        intPromise = Promise()
+        try {
+            writeArray(command)
+            val ret = awaitResult(intPromise.future)
+            if (ret == 0xF0F0) true else false
+        }
+        catch {
+            case e: Exception =>
+                false
+        }
+    }
+
+    def connectAndCheck(portName: String): Boolean = {
+        connect(portName)
+        println("Checking port...")
+        pause(2)
+        val good = ping()
+        if (!good) {
+            serialPort.closePort()
+        }
+        good
+    }
+
+    var arduinoPort: Option[String] = None
+    val prefs = builtins.kojoCtx.asInstanceOf[net.kogics.kojo.lite.KojoCtx].prefs
+    val knownPort = prefs.get("arduino.port", null)
+    if (knownPort != null) {
+        println(s"Last successful connection to: $knownPort")
+        try {
+            val good = connectAndCheck(knownPort)
+            if (good) {
+                arduinoPort = Some(knownPort)
+            }
+        }
+        catch {
+            case t: Throwable =>
+                println(s"Problem connecting to last used port: ${t.getMessage}\n")
+        }
+    }
+    if (!arduinoPort.isDefined) {
+        val names = SerialPortList.getPortNames
+        println(s"Available Ports: ${names.toList}")
+        arduinoPort = names.find { portName =>
+            val good = connectAndCheck(portName)
+            if (good) {
+                prefs.put("arduino.port", portName)
+            }
+            else {
+                println(s"Port does not have the Kojo-Arduino bridge running at the other end")
+            }
+            good
+        }
+    }
+    if (!arduinoPort.isDefined) {
+        throw new RuntimeException("Unable to find an Arduino port with the Kojo-Arduino bridge running at the other end.")
+    }
+    println("To continue, respond to the message at the bottom of this window...")
+    readln("Hit 'Enter' to run your program on the Arduino board.")
     runInBackground {
-        readln("Hit 'Enter' to stop program.")
+        readln("Hit 'Enter' to stop the program.")
         done = true
         serialPort.closePort()
     }
