@@ -236,8 +236,8 @@ def digitalRead(pin: Byte): Byte = {
     awaitResult(bytePromise.future)
 }
 
-def analogWrite(pin: Byte, value: Byte) {
-    val command = Array[Byte](4, 1, 7, pin, value)
+def analogWrite(pin: Byte, value: Int) {
+    val command = Array[Byte](4, 1, 7, pin, value.toByte)
     //                        sz,ns,cmd,arg1,arg2
     writeArray(command)
 }
@@ -268,8 +268,8 @@ object Servo {
         writeArray(command)
     }
 
-    def write(angle: Byte) {
-        val command = Array[Byte](3, 2, 2, angle)
+    def write(angle: Int) {
+        val command = Array[Byte](3, 2, 2, angle.toByte)
         //                        sz,ns,cmd,arg1
         writeArray(command)
     }
