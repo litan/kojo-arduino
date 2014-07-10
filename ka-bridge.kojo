@@ -19,6 +19,7 @@ def writeArray(arr: Array[Byte]) {
     serialPort.writeBytes(arr)
 }
 
+// write out an arduino unsigned int
 def writeInt(i: Int) {
     serialPort.writeInt(i & 0x00FF)
     serialPort.writeInt(i >> 8)
@@ -253,6 +254,12 @@ def analogRead(pin: Byte): Int = {
 def tone(pin: Byte, freq: Int) {
     writeArray(Array[Byte](5, 1, 5, pin))
     writeInt(freq)
+}
+
+def tone(pin: Byte, freq: Int, duration: Int) {
+    writeArray(Array[Byte](7, 1, 8, pin))
+    writeInt(freq)
+    writeInt(duration)
 }
 
 def noTone(pin: Byte) {

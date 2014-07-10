@@ -151,6 +151,9 @@ void dispatchCommand() {
         case 7: // analogWrite
           analogWrite(readByte(), readByte());
           break;
+        case 8: // tone
+          tone(readByte(), readInt(), readInt());
+          break;
       }
       break;
     case 2: // servo lib
