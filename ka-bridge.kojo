@@ -13,7 +13,6 @@ clearOutput()
 @volatile var serialPort: SerialPort = _
 @volatile var bytePromise: Promise[Byte] = _
 @volatile var intPromise: Promise[Int] = _
-@volatile var done = false
 
 def writeArray(arr: Array[Byte]) {
     serialPort.writeBytes(arr)
@@ -26,14 +25,7 @@ def writeInt(i: Int) {
 }
 
 def awaitResult[T](f: Future[T]): T = {
-    try {
-        Await.result(f, 1.seconds)
-    }
-    catch {
-        case e: Throwable =>
-            if (!done) throw e
-            else throw new RuntimeException("None; Program Stopped.")
-    }
+    Await.result(f, 1.seconds)
 }
 
 val debug = false
@@ -131,6 +123,7 @@ runInBackground {
     def connect(portName: String) {
         serialPort = new SerialPort(portName)
         println(s"Opening port: $portName")
+        println("Resetting Arduino board...")
         serialPort.openPort()
         serialPort.setParams(SerialPort.BAUDRATE_115200,
             SerialPort.DATABITS_8,
@@ -138,7 +131,6 @@ runInBackground {
             SerialPort.PARITY_NONE,
             true,
             true)
-
         serialPort.addEventListener(new SerialPortReader())
     }
 
@@ -200,15 +192,19 @@ runInBackground {
     if (!arduinoPort.isDefined) {
         throw new RuntimeException("Unable to find an Arduino port with the Kojo-Arduino bridge running at the other end.")
     }
-    println("To continue, respond to the message at the bottom of this window...")
-    readln("Hit 'Enter' to run your program on the Arduino board.")
-    runInBackground {
-        readln("Hit 'Enter' to stop the program.")
-        done = true
+
+    setRefreshRate(1)
+    animate {
+    }
+
+    onAnimationStop {
+        println(s"Closing port: ${arduinoPort.get}")
         serialPort.closePort()
     }
+
     setup()
-    while (!done) {
+    repeatWhile(true) {
+        // thread is interrupted when stop button is pressed
         loop()
     }
 }
@@ -286,6 +282,7 @@ val INPUT, LOW = 0.toByte
 val OUTPUT, HIGH = 1.toByte
 
 def delay(n: Int) = Thread.sleep(n)
+def millis = epochTimeMillis
 
 // uncomment setup and loop methods below to compile/run this file standalone
 //def setup() {
