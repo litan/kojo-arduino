@@ -35,7 +35,7 @@ void serialEvent() {
         incoming_packet[counter++] = input;
         if (counter == packetSize) {
           counter = 0;
-          dispatchCommand();
+          dispatchProc();
           counter = 0;
           packetSize = 0;
           state = 1;
@@ -113,7 +113,7 @@ void returnString(byte ns, byte proc, String msg) {
   Serial.write(buf);
 }
 
-void dispatchCommand() {
+void dispatchProc() {
   int intRet;
   int writeSize;
   byte byteRet;
@@ -123,7 +123,7 @@ void dispatchCommand() {
     case 0: // meta
       switch (proc) {
         case 1: // kojo ping
-          log(String("Bridge Ready"));
+          log(String("Bridge Ready."));
           returnInt(0, 1, 0xF0F0);
           break;
       }
