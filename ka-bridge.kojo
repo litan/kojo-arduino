@@ -150,7 +150,6 @@ runInBackground {
 
     def connectAndCheck(portName: String): Boolean = {
         connect(portName)
-        println("Checking port...")
         pause(2)
         val good = ping()
         if (!good) {
