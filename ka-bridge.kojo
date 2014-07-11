@@ -201,6 +201,7 @@ runInBackground {
         serialPort.closePort()
     }
 
+    println("--")
     setup()
     repeatWhile(true) {
         // thread is interrupted when stop button is pressed
