@@ -123,7 +123,7 @@ void dispatchProc() {
     case 0: // meta
       switch (proc) {
         case 1: // kojo ping
-          log(String("Bridge Ready."));
+          log(String("Board Ready."));
           returnInt(0, 1, 0xF0F0);
           break;
       }
