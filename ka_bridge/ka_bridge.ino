@@ -73,44 +73,50 @@ unsigned int readInt() {
 }
 
 void writeByte(byte b) {
-  Serial.write(b);
+  int written = Serial.write(b);
+  while (written != 1) {
+    written = Serial.write(b);
+  }
 }
 
 void writeInt(unsigned int i) {
-  Serial.write(i & 0x00FF);
-  Serial.write(i >> 8);
+  writeByte(i & 0x00FF);
+  writeByte(i >> 8);
 }
 
 void writeArray(byte arr[], int len) {
-  Serial.write(arr, len);
+  int written = Serial.write(arr, len);
+  while (written != len) {
+    written += Serial.write(arr + written, len - written);
+  }
 }
 
 void writeHeader(byte retType, byte ns, byte proc) {
   outgoing_packet_hdr[0] = retType;
   outgoing_packet_hdr[1] = ns;
   outgoing_packet_hdr[2] = proc;
-  Serial.write(outgoing_packet_hdr, OUT_PACK_HDR_SIZE);
+  writeArray(outgoing_packet_hdr, OUT_PACK_HDR_SIZE);
 }
 
 void returnByte(byte ns, byte proc, byte byteRet) {
-  Serial.write(OUT_PACK_HDR_SIZE + 1); // packet size
+  writeByte(OUT_PACK_HDR_SIZE + 1); // packet size
   writeHeader(1, ns, proc);
   writeByte(byteRet);
 }
 
 void returnInt(byte ns, byte proc, unsigned int intRet) {
-  Serial.write(OUT_PACK_HDR_SIZE + 2); // packet size
+  writeByte(OUT_PACK_HDR_SIZE + 2); // packet size
   writeHeader(2, ns, proc);
   writeInt(intRet);
 }
 
 void returnString(byte ns, byte proc, String msg) {
   int len = msg.length();
-  Serial.write(OUT_PACK_HDR_SIZE + len);
+  writeByte(OUT_PACK_HDR_SIZE + len);
   writeHeader(3, ns, proc);
   char buf[len+1];
   msg.toCharArray(buf, len+1);
-  Serial.write(buf);
+  writeArray((byte *)buf, len);
 }
 
 void dispatchProc() {
