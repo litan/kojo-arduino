@@ -8,6 +8,7 @@ import concurrent.Await
 import concurrent.duration._
 import java.nio.ByteBuffer
 import java.util.prefs.Preferences
+import java.util.Date
 
 clearOutput()
 @volatile var serialPort: SerialPort = _
@@ -15,13 +16,21 @@ clearOutput()
 @volatile var intPromise: Promise[Int] = _
 
 def writeArray(arr: Array[Byte]) {
-    serialPort.writeBytes(arr)
+    debugMsg(s"Arduino <- ${arr.toList}")
+    arr.foreach { b =>
+        var written = false
+        do {
+            written = serialPort.writeByte(b)
+        } while (written == false)
+    }
 }
 
 // write out an arduino unsigned int
+val intArray = new Array[Byte](2)
 def writeInt(i: Int) {
-    serialPort.writeInt(i & 0x00FF)
-    serialPort.writeInt(i >> 8)
+    intArray(0) = (i & 0x00FF).toByte
+    intArray(1) = (i >> 8).toByte
+    writeArray(intArray)
 }
 
 def awaitResult[T](f: Future[T]): T = {
@@ -29,7 +38,7 @@ def awaitResult[T](f: Future[T]): T = {
 }
 
 val debug = false
-def debugMsg(msg: String) {
+def debugMsg(msg: => String) {
     if (debug) {
         println(msg)
     }
@@ -90,7 +99,7 @@ class SerialPortReader extends SerialPortEventListener {
     }
 
     def handleData() {
-        debugMsg(s"Bytes available: $bytesAvailable, Curr packet size: $packetSize")
+        debugMsg(s"  Bytes available: $bytesAvailable, Curr packet size: $packetSize")
         if (bytesAvailable >= packetSize) {
             readByte match {
                 case 1 => // byte
@@ -198,9 +207,11 @@ runInBackground {
 
     onAnimationStop {
         println(s"Closing port: ${arduinoPort.get}")
+        println(s"Stopped at: ${new Date}")
         serialPort.closePort()
     }
 
+    println(s"Started at: ${new Date}")
     println("--")
     setup()
     repeatWhile(true) {
