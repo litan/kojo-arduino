@@ -1,7 +1,12 @@
 /*
-Kojo Arduino Bridge -- Arduino side
+ * Copyright (C) 2014 Lalit Pant <pant.lalit@gmail.com>
+ *
+ * The contents of this file are subject to the GNU General Public License
+ * Version 3 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of
+ * the License at http://www.gnu.org/copyleft/gpl.html
  */
- 
+
 #include <Servo.h>
 Servo servo;
 
