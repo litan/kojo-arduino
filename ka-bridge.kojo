@@ -201,7 +201,7 @@ runInBackground {
                 prefs.put("arduino.port", portName)
             }
             else {
-                println(s"Port does not have the Kojo-Arduino bridge running at the other end")
+                println(s"Port does not have the Kojo-Arduino bridge running at the other end: $portName")
             }
             good
         }
