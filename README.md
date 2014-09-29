@@ -1,6 +1,6 @@
 To get going with the Kojo-Arduino bridge, do the following:
 
-* Upload [ka_bridge.ino](https://bitbucket.org/lalit_pant/kojo-arduino/src/tip/ka_bridge/ka_bridge.ino) to your Arduino board.
+* Upload [ka_bridge.ino](https://bitbucket.org/lalit_pant/kojo-arduino/src/tip/ka_bridge/ka_bridge.ino) to your Arduino board using the [Arduino IDE](http://arduino.cc/en/Guide/Environment).
 * Save [ka-bridge.kojo](https://bitbucket.org/lalit_pant/kojo-arduino/src/tip/ka-bridge.kojo) in a directory on your machine.
 * Copy [jssc.jar](https://bitbucket.org/lalit_pant/kojo-arduino/src/tip/lib/) into your `~/.kojo/lite/libk` directory.
 * Include ka-bridge.kojo in your [Arduino script](https://bitbucket.org/lalit_pant/kojo-arduino/raw/tip/starterkit/proj-02.kojo).
