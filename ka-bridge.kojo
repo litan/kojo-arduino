@@ -140,8 +140,7 @@ implicit def i2b(i: Int) = i.toByte
 runInBackground {
     def connect(portName: String) {
         serialPort = new SerialPort(portName)
-        println(s"Opening port: $portName")
-        println("Resetting Arduino board...")
+        println(s"Opening port: $portName (and resetting Arduino board)...")
         serialPort.openPort()
         serialPort.setParams(SerialPort.BAUDRATE_115200,
             SerialPort.DATABITS_8,
