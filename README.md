@@ -1,6 +1,7 @@
  To program an Arduino board with Kojo, you need to set up a bridge between Kojo (running on your computer) and the Arduino board. This bridge has two components:
 * A program called ka_bridge.ino that runs on the Arduino board.
 * A file called ka-bridge.kojo that you can include within your Kojo programs.
+
 These two components talk to each other to do whatever Arduino specific things you want to do in your Kojo based Arduino programs.
 
 To set up the Kojo-Arduino bridge, you need to do the following:
@@ -12,5 +13,5 @@ Once the Kojo-Arduino bridge is set up, you can start writing [Kojo based Arduin
 
 Some examples (ports of the examples in the [official Arduino Starter Kit](http://arduino.cc/en/Main/ArduinoStarterKit)) are available to help you get going:
 
-[Starter Kit examples](https://bitbucket.org/lalit_pant/kojo-arduino/src/tip/starterkit/)
+* [Starter Kit examples](https://github.com/litan/kojo-arduino/tree/master/starterkit)
 
