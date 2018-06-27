@@ -181,15 +181,20 @@ runInBackground {
     }
 
     def connectAndCheck(portName: String): Boolean = {
-        connect(portName)
-        debugMsg("Connection done; pinging soon...")
-        pause(2)
-        debugMsg("Pinging...")
-        val good = ping()
-        if (!good) {
-            serialPort.closePort()
+        try {
+            connect(portName)
+            debugMsg("Connection done; pinging soon...")
+            pause(2)
+            debugMsg("Pinging...")
+            val good = ping()
+            if (!good) {
+                serialPort.closePort()
+            }
+            good
         }
-        good
+        catch {
+            case _: Throwable => false
+        }
     }
 
     var arduinoPort: Option[String] = None
@@ -316,6 +321,34 @@ object Servo {
         val command = Array[Byte](3, 2, 2, angle.toByte)
         //                        sz,ns,cmd,arg1
         writeArray(command)
+    }
+}
+
+object SoftSerial {
+    // proxy for Softserial library
+    // namespace (ns) = 3
+
+    def begin(baud: Int) {
+        val command = Array[Byte](4, 3, 1)
+        //                        sz,ns,cmd
+        writeArray(command)
+        writeInt(baud)
+    }
+
+    def available(): Int = {
+        val command = Array[Byte](2, 3, 2)
+        //                        sz,ns,cmd
+        intPromise = Promise()
+        writeArray(command)
+        awaitResult(intPromise.future)
+    }
+
+    def read(): Int = {
+        val command = Array[Byte](2, 3, 3)
+        //                        sz,ns,cmd
+        intPromise = Promise()
+        writeArray(command)
+        awaitResult(intPromise.future)
     }
 }
 

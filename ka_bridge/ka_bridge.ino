@@ -18,7 +18,13 @@ boolean debug = false;
 
 // Include libs here
 #include <Servo.h>
+#include <SoftwareSerial.h>
+
 Servo servo;
+
+#define softSerial_RX 10
+#define softSerial_TX 11
+SoftwareSerial softSerial(softSerial_RX, softSerial_TX);
 
 void setup() {
   Serial.begin(115200);
@@ -204,5 +210,23 @@ void dispatchProc() {
           break;
       }
       break;
+    case 3: // soft serial lib
+      switch (proc) {
+        case 1: // begin
+          i1 = readInt();
+          softSerial.begin(i1);
+          debugLog(String("softSerial.begin(") + i1 + String(")"));
+          break;
+        case 2: // available
+          returnInt(3, 1, softSerial.available());
+          // debugLog(String("softSerial.available()"));
+          break;
+        case 3: // read
+          returnInt(3, 2, softSerial.read());
+          debugLog(String("softSerial.read()"));
+          break;
+      }
+      break;
   }
 }
+
