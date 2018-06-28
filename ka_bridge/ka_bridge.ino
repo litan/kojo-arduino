@@ -9,12 +9,20 @@
 
 #define IN_PACK_MAX_SIZE (10) // ns, proc, and eight more bytes for args
 #define OUT_PACK_HDR_SIZE (3) // ret val type, ns, and proc
+
+#define DEBUG
+
+#ifdef DEBUG
+ #define debugLog(x)  log(x)
+#else
+ #define debugLog(x)
+#endif
+
 byte incoming_packet[IN_PACK_MAX_SIZE]; 
 byte outgoing_packet_hdr[OUT_PACK_HDR_SIZE]; 
 int counter;
 int state;
 int packetSize;
-boolean debug = false;
 
 // Include libs here
 #include <Servo.h>
@@ -69,12 +77,6 @@ int len(const char str[]) {
 
 void log(String msg) {
   returnString(0, -1, msg);
-}
-
-void debugLog(String msg) {
-  if (debug) {
-    log(msg);
-  }
 }
 
 byte readByte() {
