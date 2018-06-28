@@ -171,24 +171,24 @@ void dispatchProc() {
         case 1: // pinMode
           b1 = readByte();
           b2 = readByte();
-          pinMode(b1, b2);
           debugLog(String("pinMode(") + b1 + ", " + b2 + ")");
+          pinMode(b1, b2);
           break;
         case 2: // digitalWrite
           b1 = readByte();
           b2 = readByte();
-          digitalWrite(b1, b2);
           debugLog(String("digitalWrite(") + b1 + ", " + b2 + ")");
+          digitalWrite(b1, b2);
           break;
         case 3: // digitalRead
           b1 = readByte();
-          returnByte(1, 3, digitalRead(b1));
           debugLog(String("digitalRead(") + b1 + ")");
+          returnByte(1, 3, digitalRead(b1));
           break;
         case 4: // analogRead
           b1 = readByte();
-          returnInt(1, 4, analogRead(b1));
           debugLog(String("analogRead(") + b1 + ")");
+          returnInt(1, 4, analogRead(b1));
           break;
         case 5: // tone
           b1 = readByte();
@@ -201,8 +201,8 @@ void dispatchProc() {
         case 7: // analogWrite
           b1 = readByte();
           b2 = readByte();
-          analogWrite(b1, b2);
           debugLog(String("analogWrite(") + b1 + ", " + b2 + ")");
+          analogWrite(b1, b2);
           break;
         case 8: // tone
           b1 = readByte();
@@ -230,22 +230,24 @@ void dispatchProc() {
             debugLog("Created softSerial instance");
           }
           i1 = readInt();
-          softSerial->begin(i1);
           debugLog(String("softSerial.begin(") + i1 + ")");
+          softSerial->begin(i1);
           break;
         case 2: // available
           returnInt(3, 2, softSerial->available());
           // debugLog("softSerial.available()");
           break;
         case 3: // read
-          returnInt(3, 3, softSerial->read());
-          debugLog("softSerial.read()");
+          i1 = softSerial->read();
+          debugLog(String("softSerial.read()") + " = " + i1);
+          returnInt(3, 3, i1);
           break;
         case 4: // println
           char* str = readString();
           int n = softSerial->println(str);
-          returnInt(3, 4, n);
           debugLog(String("softSerial.println(") + str + ")");
+          returnInt(3, 4, n);
+          delete str;
           break;
       }
       break;
