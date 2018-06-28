@@ -90,6 +90,16 @@ unsigned int readInt() {
   return retVal;
 }
 
+char* readString() {
+  int len = readInt();
+  char* buf = new char[len+1];
+  for (int i=0; i < len; i++){
+    buf[i] = readByte();
+  }
+  buf[len] = 0;
+  return buf;
+}
+
 void writeByte(byte b) {
   int written = Serial.write(b);
   while (written != 1) {
@@ -222,12 +232,18 @@ void dispatchProc() {
           debugLog(String("softSerial.begin(") + i1 + String(")"));
           break;
         case 2: // available
-          returnInt(3, 1, softSerial->available());
+          returnInt(3, 2, softSerial->available());
           // debugLog(String("softSerial.available()"));
           break;
         case 3: // read
-          returnInt(3, 2, softSerial->read());
+          returnInt(3, 3, softSerial->read());
           debugLog(String("softSerial.read()"));
+          break;
+        case 4: // println
+          char* str = readString();
+          int n = softSerial->println(str);
+          returnInt(3, 4, n);
+          debugLog(String("softSerial.println(") + str + String(")"));
           break;
       }
       break;

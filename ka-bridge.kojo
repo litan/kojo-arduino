@@ -42,6 +42,11 @@ def writeInt(i: Int) {
     writeArray(intArray)
 }
 
+def writeString(s: String) {
+    val stringArray = s.getBytes("US-ASCII")
+    writeArray(stringArray)
+}
+
 def awaitResult[T](f: Future[T]): T = {
     Await.result(f, 5.seconds)
 }
@@ -348,6 +353,17 @@ object SoftSerial {
         //                        sz,ns,cmd
         intPromise = Promise()
         writeArray(command)
+        awaitResult(intPromise.future)
+    }
+
+    def println(s: String): Int = {
+        val len = s.length
+        val command = Array[Byte](2 + 2 + len, 3, 4)
+        //                        sz,ns,cmd
+        intPromise = Promise()
+        writeArray(command)
+        writeInt(len)
+        writeString(s)
         awaitResult(intPromise.future)
     }
 }
