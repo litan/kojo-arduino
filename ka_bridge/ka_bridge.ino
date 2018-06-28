@@ -24,7 +24,7 @@ Servo servo;
 
 #define softSerial_RX 10
 #define softSerial_TX 11
-SoftwareSerial softSerial(softSerial_RX, softSerial_TX);
+SoftwareSerial *softSerial = NULL;
 
 void setup() {
   Serial.begin(115200);
@@ -213,16 +213,20 @@ void dispatchProc() {
     case 3: // soft serial lib
       switch (proc) {
         case 1: // begin
+          if (softSerial == NULL) {
+            softSerial = new SoftwareSerial(softSerial_RX, softSerial_TX);
+            debugLog(String("Created softSerial instance"));
+          }
           i1 = readInt();
-          softSerial.begin(i1);
+          softSerial->begin(i1);
           debugLog(String("softSerial.begin(") + i1 + String(")"));
           break;
         case 2: // available
-          returnInt(3, 1, softSerial.available());
+          returnInt(3, 1, softSerial->available());
           // debugLog(String("softSerial.available()"));
           break;
         case 3: // read
-          returnInt(3, 2, softSerial.read());
+          returnInt(3, 2, softSerial->read());
           debugLog(String("softSerial.read()"));
           break;
       }
