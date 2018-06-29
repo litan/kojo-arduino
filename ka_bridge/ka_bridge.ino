@@ -154,7 +154,7 @@ void dispatchProc() {
   int writeSize;
   byte byteRet;
   byte b1, b2;
-  int i1, i2;
+  unsigned int i1, i2;
   byte ns = readByte();
   byte proc = readByte();
   switch (ns) {
