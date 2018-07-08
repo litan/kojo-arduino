@@ -34,9 +34,12 @@ def writeArray(arr: Array[Byte]) {
     }
 }
 
+val MaxArduinoInt = math.pow(2, 16).toInt
+
 // write out an arduino unsigned int
 val intArray = new Array[Byte](2)
 def writeInt(i: Int) {
+    require(i < MaxArduinoInt, s"writeInt(n) - an Arduino unsigned int has to be less than: $MaxArduinoInt")
     intArray(0) = (i & 0x00FF).toByte
     intArray(1) = (i >> 8).toByte
     writeArray(intArray)
@@ -236,13 +239,11 @@ runInBackground {
         throw new RuntimeException("Unable to find an Arduino port with the Kojo-Arduino bridge running at the other end.")
     }
 
-    setRefreshRate(1)
-    animate {
-    }
-
-    onAnimationStop {
+    def done() {
+        println("")
         println(s"Closing port: ${arduinoPort.get}")
         println(s"Stopped at: ${new Date}")
+        println("--")
         try {
             serialPort.closePort()
         }
@@ -253,10 +254,15 @@ runInBackground {
 
     println(s"Started at: ${new Date}")
     println("--")
-    setup()
-    repeatWhile(true) {
-        // thread is interrupted when stop button is pressed
-        loop()
+    try {
+        setup()
+        repeatWhile(true) {
+            // thread is interrupted when stop button is pressed
+            loop()
+        }
+    }
+    finally {
+        done()
     }
 }
 
