@@ -11,7 +11,7 @@ To set up the Kojo-Arduino bridge, you need to do the following:
 
 Once the Kojo-Arduino bridge is set up, you can start writing [Kojo based Arduino programs](https://github.com/litan/kojo-arduino/blob/master/examples/darkness-led.kojo).
 
-A large nunmber of examples are available to help you get going:
+A bunch of examples are available to help you get going:
 * [Examples folder](https://github.com/litan/kojo-arduino/tree/master/examples) in this repo.
 * [Ports of the examples](https://github.com/litan/kojo-arduino/tree/master/starterkit) in the [official Arduino Starter Kit](http://arduino.cc/en/Main/ArduinoStarterKit).
 
