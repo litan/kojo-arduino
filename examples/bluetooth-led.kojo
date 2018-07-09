@@ -8,9 +8,10 @@
  */
 // #include ~/kojo-includes/ka-bridge.kojo
 val ledPin = 12
+val bluetoothModuleBaudRate = 38400
 def setup() {
     pinMode(ledPin, OUTPUT)
-    SoftSerial.begin(9600)
+    SoftSerial.begin(bluetoothModuleBaudRate)
 }
 
 def loop() {
