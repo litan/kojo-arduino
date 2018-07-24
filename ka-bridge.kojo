@@ -123,19 +123,24 @@ class SerialPortReader extends SerialPortEventListener {
                 case 1 => // byte
                     readByte; readByte
                     val d = readByte
-                    if (bytePromise != null) {
+                    if (bytePromise != null && !bytePromise.isCompleted) {
                         bytePromise.success(d)
                     }
                 case 2 => // int
                     readByte; readByte
                     val d = readInt
-                    if (intPromise != null) {
+                    if (intPromise != null && !intPromise.isCompleted) {
                         intPromise.success(d)
                     }
                 case 3 => // string
                     readByte; readByte
                     val msg = readString
                     println(s"[Arduino-Log] $msg")
+                case _ => // unknown
+                    repeat(packetSize - 1) {
+                        readByte
+                    }
+                    println("Unknown data received")
             }
             packetDone()
         }
