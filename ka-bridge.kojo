@@ -35,6 +35,7 @@ def writeArray(arr: Array[Byte]) {
 }
 
 val MaxArduinoInt = math.pow(2, 16).toInt
+val MaxArduinoByte = math.pow(2, 8).toInt
 
 // write out an arduino unsigned int
 val intArray = new Array[Byte](2)
@@ -159,9 +160,9 @@ runInBackground {
         serialPort.setParams(SerialPort.BAUDRATE_115200,
             SerialPort.DATABITS_8,
             SerialPort.STOPBITS_1,
-            SerialPort.PARITY_NONE,
-            true,
-            true)
+            SerialPort.PARITY_NONE
+        )
+        serialPort.setEventsMask(SerialPort.MASK_RXCHAR);
         serialPort.addEventListener(new SerialPortReader())
     }
 
@@ -291,6 +292,7 @@ def digitalRead(pin: Byte): Byte = {
 }
 
 def analogWrite(pin: Byte, value: Int) {
+    require(value < MaxArduinoByte, s"analogWrite() - value has to be less than: $MaxArduinoByte")
     val command = Array[Byte](4, 1, 7, pin, value.toByte)
     //                        sz,ns,cmd,arg1,arg2
     writeArray(command)

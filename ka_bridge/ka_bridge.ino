@@ -36,6 +36,7 @@ SoftwareSerial *softSerial = NULL;
 
 void setup() {
   Serial.begin(115200);
+  log("Board (re)starting.");
   counter = 0;
   state = 1;
 }
