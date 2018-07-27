@@ -34,6 +34,9 @@ Servo servo;
 #define softSerial_TX 11
 SoftwareSerial *softSerial = NULL;
 
+// For Ultrasonic sensor
+byte triggerPin, echoPin;
+
 void setup() {
   Serial.begin(115200);
   log("Board (re)starting.");
@@ -115,6 +118,13 @@ void writeInt(unsigned int i) {
   writeByte(i >> 8);
 }
 
+void writeLong(unsigned long l) {
+  writeByte(l & 0x000000FF);
+  writeByte((l >> 8) & 0x0000FF);
+  writeByte((l >> 16) & 0x00FF);
+  writeByte(l >> 24);
+}
+
 void writeArray(byte arr[], int len) {
   int written = Serial.write(arr, len);
   while (written != len) {
@@ -139,6 +149,12 @@ void returnInt(byte ns, byte proc, unsigned int intRet) {
   writeByte(OUT_PACK_HDR_SIZE + 2); // packet size
   writeHeader(2, ns, proc);
   writeInt(intRet);
+}
+
+void returnLong(byte ns, byte proc, unsigned long longRet) {
+  writeByte(OUT_PACK_HDR_SIZE + 4); // packet size
+  writeHeader(4, ns, proc);
+  writeLong(longRet);
 }
 
 void returnString(byte ns, byte proc, String msg) {
@@ -245,10 +261,29 @@ void dispatchProc() {
           break;
         case 4: // println
           char* str = readString();
-          int n = softSerial->println(str);
           debugLog(String("softSerial.println(") + str + ")");
-          returnInt(3, 4, n);
+          returnInt(3, 4, softSerial->println(str));
           delete str;
+          break;
+      }
+      break;
+    case 4: // ultrasonic sensor
+      switch (proc) {
+        case 1: // init
+          triggerPin = readByte();
+          echoPin = readByte();
+          pinMode(triggerPin, OUTPUT);
+          pinMode(echoPin, INPUT);
+          break;
+        case 2: // pingMicroSecs
+          digitalWrite(triggerPin, LOW);
+          delayMicroseconds(2);
+          digitalWrite(triggerPin, HIGH);
+          delayMicroseconds(10);
+          digitalWrite(triggerPin, LOW);
+          unsigned long duration = pulseIn(echoPin, HIGH);
+          debugLog(String("Ultrasonic.pingMicroSecs() -> ") + duration);
+          returnLong(4, 2, duration);
           break;
       }
       break;

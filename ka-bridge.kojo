@@ -23,6 +23,7 @@ clearOutput()
 @volatile var serialPort: SerialPort = _
 @volatile var bytePromise: Promise[Byte] = _
 @volatile var intPromise: Promise[Int] = _
+@volatile var longPromise: Promise[Long] = _
 
 def writeArray(arr: Array[Byte]) {
     debugMsg(s"Arduino <- ${arr.toList}")
@@ -79,6 +80,14 @@ class SerialPortReader extends SerialPortEventListener {
         hiByte << 8 | lowByte
     }
 
+    def readLong: Long = {
+        val lowByte: Int = readByte & 0x00FF
+        val hiByte: Int = readByte & 0x00FF
+        val hi2Byte: Int = readByte & 0x00FF
+        val hi3Byte: Int = readByte & 0x00FF
+        hi3Byte << 24 | hi2Byte << 16 | hiByte << 8 | lowByte
+    }
+
     def readString: String = {
         val buf = new Array[Byte](packetSize - 3)
         currData.get(buf)
@@ -117,30 +126,48 @@ class SerialPortReader extends SerialPortEventListener {
     }
 
     def handleData() {
+        def drainBytes(n: Int, msg: String) {
+            repeat(n) {
+                readByte
+            }
+            println(msg)
+        }
         debugMsg(s"  Bytes available: $bytesAvailable, Curr packet size: $packetSize")
         if (bytesAvailable >= packetSize) {
             readByte match {
                 case 1 => // byte
-                    readByte; readByte
-                    val d = readByte
                     if (bytePromise != null && !bytePromise.isCompleted) {
+                        readByte; readByte
+                        val d = readByte
                         bytePromise.success(d)
                     }
+                    else {
+                        drainBytes(packetSize - 1, "Unexpected Byte received.")
+                    }
                 case 2 => // int
-                    readByte; readByte
-                    val d = readInt
                     if (intPromise != null && !intPromise.isCompleted) {
+                        readByte; readByte
+                        val d = readInt
                         intPromise.success(d)
+                    }
+                    else {
+                        drainBytes(packetSize - 1, "Unexpected Int received.")
                     }
                 case 3 => // string
                     readByte; readByte
                     val msg = readString
                     println(s"[Arduino-Log] $msg")
-                case _ => // unknown
-                    repeat(packetSize - 1) {
-                        readByte
+                case 4 => // long
+                    if (longPromise != null && !longPromise.isCompleted) {
+                        readByte; readByte
+                        val d = readLong
+                        longPromise.success(d)
                     }
-                    println("Unknown data received")
+                    else {
+                        drainBytes(packetSize - 1, "Unexpected Long received.")
+                    }
+                case _ => // unknown
+                    drainBytes(packetSize - 1, "Unknown data received.")
             }
             packetDone()
         }
@@ -251,7 +278,10 @@ runInBackground {
         println(s"Stopped at: ${new Date}")
         println("--")
         try {
-            serialPort.closePort()
+            if (serialPort.isOpened()) {
+                serialPort.purgePort(SerialPort.PURGE_RXCLEAR | SerialPort.PURGE_TXCLEAR)
+                serialPort.closePort()
+            }
         }
         catch {
             case _: Throwable =>
@@ -380,6 +410,27 @@ object SoftSerial {
         awaitResult(intPromise.future)
     }
 }
+
+object UltraSonic {
+    // proxy for ultrasonic sensor
+    // namespace (ns) = 4
+
+    def init(triggerPin: Byte, echoPin: Byte) {
+        val command = Array[Byte](4, 4, 1, triggerPin, echoPin)
+        //                        sz,ns,cmd,arg1, arg2
+        writeArray(command)
+    }
+    
+    def pingMicroSecs(): Long = {
+        val command = Array[Byte](2, 4, 2)
+        //                        sz,ns,cmd
+        longPromise = Promise()
+        writeArray(command)
+        awaitResult(longPromise.future)
+    }
+}
+
+
 
 val INPUT, LOW = 0.toByte
 val OUTPUT, HIGH = 1.toByte
