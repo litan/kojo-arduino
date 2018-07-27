@@ -81,10 +81,10 @@ class SerialPortReader extends SerialPortEventListener {
     }
 
     def readLong: Long = {
-        val lowByte: Int = readByte & 0x00FF
-        val hiByte: Int = readByte & 0x00FF
-        val hi2Byte: Int = readByte & 0x00FF
-        val hi3Byte: Int = readByte & 0x00FF
+        val lowByte: Long = readByte & 0x00FF
+        val hiByte: Long = readByte & 0x00FF
+        val hi2Byte: Long = readByte & 0x00FF
+        val hi3Byte: Long = readByte & 0x00FF
         hi3Byte << 24 | hi2Byte << 16 | hiByte << 8 | lowByte
     }
 
@@ -435,7 +435,7 @@ object UltraSonic {
 val INPUT, LOW = 0.toByte
 val OUTPUT, HIGH = 1.toByte
 
-def delay(n: Int) = Thread.sleep(n)
+def delay(n: Long) = Thread.sleep(n)
 def millis = epochTimeMillis
 
 // uncomment setup and loop methods below to compile/run this file standalone

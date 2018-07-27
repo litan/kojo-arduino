@@ -39,6 +39,7 @@ byte triggerPin, echoPin;
 
 void setup() {
   Serial.begin(115200);
+  delay(10);
   log("Board (re)starting.");
   counter = 0;
   state = 1;
@@ -267,23 +268,23 @@ void dispatchProc() {
           break;
       }
       break;
-    case 4: // ultrasonic sensor
+    case 4: // Ultrasonic sensor
       switch (proc) {
         case 1: // init
           triggerPin = readByte();
           echoPin = readByte();
+          debugLog(String("Ultrasonic.init(") + triggerPin + ", " + echoPin + ")");
           pinMode(triggerPin, OUTPUT);
           pinMode(echoPin, INPUT);
           break;
         case 2: // pingMicroSecs
+          debugLog("Ultrasonic.pingMicroSecs()");
           digitalWrite(triggerPin, LOW);
           delayMicroseconds(2);
           digitalWrite(triggerPin, HIGH);
           delayMicroseconds(10);
           digitalWrite(triggerPin, LOW);
-          unsigned long duration = pulseIn(echoPin, HIGH);
-          debugLog(String("Ultrasonic.pingMicroSecs() -> ") + duration);
-          returnLong(4, 2, duration);
+          returnLong(4, 2, pulseIn(echoPin, HIGH));
           break;
       }
       break;
