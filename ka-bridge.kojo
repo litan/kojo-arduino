@@ -429,6 +429,30 @@ object UltraSonic {
     }
 }
 
+object ZumoMotors {
+    // proxy for ultrasonic sensor
+    // namespace (ns) = 4
+
+    def init() {
+        val command = Array[Byte](2, 5, 1)
+        //                        sz,ns,cmd
+        writeArray(command)
+    }
+    
+    def setLeftSpeed(speed: Int) {
+        val command = Array[Byte](4, 5, 2)
+        //                        sz,ns,cmd
+        writeArray(command)
+        writeInt(speed)
+    }
+
+    def setRightSpeed(speed: Int) {
+        val command = Array[Byte](4, 5, 3)
+        //                        sz,ns,cmd
+        writeArray(command)
+        writeInt(speed)
+    }
+}
 
 
 val INPUT, LOW = 0.toByte

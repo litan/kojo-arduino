@@ -27,12 +27,16 @@ int packetSize;
 // Include libs here
 #include <Servo.h>
 #include <SoftwareSerial.h>
+#include <ZumoShield.h>
 
 Servo servo;
 
 #define softSerial_RX 10
 #define softSerial_TX 11
 SoftwareSerial *softSerial = NULL;
+
+ZumoMotors *zumoMotors = NULL;
+
 
 // For Ultrasonic sensor
 byte triggerPin, echoPin;
@@ -168,8 +172,6 @@ void returnString(byte ns, byte proc, String msg) {
 }
 
 void dispatchProc() {
-  int intRet;
-  int writeSize;
   byte byteRet;
   byte b1, b2;
   unsigned int i1, i2;
@@ -285,6 +287,24 @@ void dispatchProc() {
           delayMicroseconds(10);
           digitalWrite(triggerPin, LOW);
           returnLong(4, 2, pulseIn(echoPin, HIGH));
+          break;
+      }
+      break;
+    case 5: // Zumo shield
+      switch (proc) {
+        case 1: // init
+          if (zumoMotors == NULL) {
+            zumoMotors = new ZumoMotors
+            debugLog("Created ZumoMotors instance");
+          }
+          break;
+        case 2: // set left speed
+          i1 = readInt();
+          zumoMotors->setLeftSpeed(i1);
+          break;
+        case 3: // set right speed
+          i1 = readInt();
+          zumoMotors->setRightSpeed(i1);
           break;
       }
       break;
