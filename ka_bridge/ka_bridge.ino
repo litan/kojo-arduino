@@ -10,6 +10,7 @@
 #define IN_PACK_MAX_SIZE (10) // ns, proc, and eight more bytes for args
 #define OUT_PACK_HDR_SIZE (3) // ret val type, ns, and proc
 
+// Put in a delay of at lease 100ms in your Kojo loop if you turn debug on
 // #define DEBUG
 
 #ifdef DEBUG
@@ -172,9 +173,9 @@ void returnString(byte ns, byte proc, String msg) {
 }
 
 void dispatchProc() {
-  byte byteRet;
   byte b1, b2;
   unsigned int i1, i2;
+  signed int si1;
   byte ns = readByte();
   byte proc = readByte();
   switch (ns) {
@@ -294,17 +295,23 @@ void dispatchProc() {
       switch (proc) {
         case 1: // init
           if (zumoMotors == NULL) {
-            zumoMotors = new ZumoMotors
+            zumoMotors = new ZumoMotors;
             debugLog("Created ZumoMotors instance");
           }
           break;
         case 2: // set left speed
-          i1 = readInt();
-          zumoMotors->setLeftSpeed(i1);
+          si1 = readInt();
+          if (si1 != 0) {
+            debugLog(String("setLeftSpeed(") + si1 + ")");
+          }
+          zumoMotors->setLeftSpeed(si1);
           break;
         case 3: // set right speed
-          i1 = readInt();
-          zumoMotors->setRightSpeed(i1);
+          si1 = readInt();
+          if (si1 != 0) {
+            debugLog(String("setRightSpeed(") + si1 + ")");
+          }
+          zumoMotors->setRightSpeed(si1);
           break;
       }
       break;
