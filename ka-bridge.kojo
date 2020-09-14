@@ -123,11 +123,11 @@ class SerialPortReader extends SerialPortEventListener {
         state match {
             case 1 =>
                 packetSize = currData.get
-                bytesAvailable = currData.limit - currData.position
+                bytesAvailable = currData.limit() - currData.position()
                 state = 2
                 handleData()
             case 2 =>
-                bytesAvailable = currData.limit - currData.position
+                bytesAvailable = currData.limit() - currData.position()
                 handleData()
         }
     }
