@@ -10,7 +10,7 @@
 // #include ~/kojo-includes/ka-bridge.kojo
 switchToScriptEditingPerspective()
 val ledPin = 12
-val darknessThreashold = 500
+val darknessThreashold = 400
 def setup() {
     pinMode(ledPin, OUTPUT)
 }
@@ -24,4 +24,5 @@ def loop() {
     else {
         digitalWrite(ledPin, LOW)
     }
+    delay(100)
 }
