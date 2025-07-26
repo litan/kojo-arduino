@@ -11,12 +11,24 @@ def setup() {
     digitalWrite(ledPin, LOW)
     Oled.init(0x3C)
     Oled.clearDisplay()
-    Oled.println("Hello")
-    Oled.startScrollLeft(0, 7)
-    delay(5000)
-    Oled.stopScroll()
+    Oled.setTextSize(1)
+    Oled.println("Scrolling Hello")
 }
 
 def loop() {
+    Oled.startScrollRight(0x00, 0x0F);
+    delay(2000);
+    Oled.stopScroll();
+    delay(1000);
+    Oled.startScrollLeft(0x00, 0x0F);
+    delay(2000);
+    Oled.stopScroll();
+    delay(1000);
+    Oled.startScrollDiagRight(0x00, 0x07);
+    delay(2000);
+    Oled.startScrollDiagLeft(0x00, 0x07);
+    delay(2000);
+    Oled.stopScroll();
+    delay(1000);
 }
 

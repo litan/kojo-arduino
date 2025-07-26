@@ -12,6 +12,7 @@
 
 // Put in a delay of at least 100ms in your Kojo loop if you turn debug on
 // #define DEBUG
+// #define ZUMO
 
 #ifdef DEBUG
  #define debugLog(x)  log(x)
@@ -28,7 +29,9 @@ int packetSize;
 // Include libs here
 #include <Servo.h>
 #include <SoftwareSerial.h>
-// #include <ZumoShield.h>
+#ifdef ZUMO
+#include <ZumoShield.h>
+#endif
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -45,7 +48,9 @@ Servo servo;
 #define softSerial_TX 11
 SoftwareSerial *softSerial = NULL;
 
-// ZumoMotors *zumoMotors = NULL;
+#ifdef ZUMO
+ZumoMotors *zumoMotors = NULL;
+#endif
 
 
 // For Ultrasonic sensor
@@ -303,30 +308,32 @@ void dispatchProc() {
           break;
       }
       break;
-//    case 5: // Zumo shield
-//      switch (proc) {
-//        case 1: // init
-//          if (zumoMotors == NULL) {
-//            zumoMotors = new ZumoMotors;
-//            debugLog("Created ZumoMotors instance");
-//          }
-//          break;
-//        case 2: // set left speed
-//          si1 = readSignedInt();
-//          if (si1 != 0) {
-//            debugLog(String("setLeftSpeed(") + si1 + ")");
-//          }
-//          zumoMotors->setLeftSpeed(si1);
-//          break;
-//        case 3: // set right speed
-//          si1 = readSignedInt();
-//          if (si1 != 0) {
-//            debugLog(String("setRightSpeed(") + si1 + ")");
-//          }
-//          zumoMotors->setRightSpeed(si1);
-//          break;
-//      }
-//      break;
+#ifdef ZUMO
+    case 5: // Zumo shield
+      switch (proc) {
+        case 1: // init
+          if (zumoMotors == NULL) {
+            zumoMotors = new ZumoMotors;
+            debugLog("Created ZumoMotors instance");
+          }
+          break;
+        case 2: // set left speed
+          si1 = readSignedInt();
+          if (si1 != 0) {
+            debugLog(String("setLeftSpeed(") + si1 + ")");
+          }
+          zumoMotors->setLeftSpeed(si1);
+          break;
+        case 3: // set right speed
+          si1 = readSignedInt();
+          if (si1 != 0) {
+            debugLog(String("setRightSpeed(") + si1 + ")");
+          }
+          zumoMotors->setRightSpeed(si1);
+          break;
+      }
+      break;
+#endif
     case 6: // Oled Display
       switch (proc) {
         case 1: // init
@@ -368,6 +375,14 @@ void dispatchProc() {
           b1 = readByte();
           b2 = readByte();
           display.startscrolldiagleft(b1, b2);
+          break;
+        case 9: // setTextSize
+          b1 = readByte();
+          display.setTextSize(b1);
+          break;
+        case 10: // setTextColor
+          i1 = readInt();
+          display.setTextColor(i1);
           break;
       }
       break;

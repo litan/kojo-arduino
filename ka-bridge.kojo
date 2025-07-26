@@ -529,11 +529,18 @@ object Oled {
         writeArray(command)
     }
 
-//    def setTextSize() {
-//        val command = Array[Byte](2, 6, 6)
-//        //                        sz,ns,cmd
-//        writeArray(command)
-//    }
+    def setTextSize(size: Byte) {
+        val command = Array[Byte](3, 6, 9, size)
+        //                        sz,ns,cmd
+        writeArray(command)
+    }
+
+    def setTextColor(color: Int) {
+        val command = Array[Byte](4, 6, 10)
+        //                        sz,ns,cmd
+        writeArray(command)
+        writeInt(color)
+    }
 }
 
 
