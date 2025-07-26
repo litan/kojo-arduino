@@ -10,7 +10,7 @@
 #define IN_PACK_MAX_SIZE (10) // ns, proc, and eight more bytes for args
 #define OUT_PACK_HDR_SIZE (3) // ret val type, ns, and proc
 
-// Put in a delay of at lease 100ms in your Kojo loop if you turn debug on
+// Put in a delay of at least 100ms in your Kojo loop if you turn debug on
 // #define DEBUG
 
 #ifdef DEBUG
@@ -28,7 +28,16 @@ int packetSize;
 // Include libs here
 #include <Servo.h>
 #include <SoftwareSerial.h>
-#include <ZumoShield.h>
+// #include <ZumoShield.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+
+// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 Servo servo;
 
@@ -36,7 +45,7 @@ Servo servo;
 #define softSerial_TX 11
 SoftwareSerial *softSerial = NULL;
 
-ZumoMotors *zumoMotors = NULL;
+// ZumoMotors *zumoMotors = NULL;
 
 
 // For Ultrasonic sensor
@@ -97,9 +106,11 @@ unsigned int readInt() {
   byte lo = readByte();
   byte hi = readByte();
   unsigned int retVal = hi << 8 | lo;
-//  String msg = String("Read Int: ") + retVal;
-//  log(msg);
   return retVal;
+}
+
+signed int readSignedInt() {
+  return readInt();
 }
 
 char* readString() {
@@ -263,12 +274,13 @@ void dispatchProc() {
           debugLog(String("softSerial.read()") + " = " + i1);
           returnInt(3, 3, i1);
           break;
-        case 4: // println
+        case 4: { // println
           char* str = readString();
           debugLog(String("softSerial.println(") + str + ")");
           returnInt(3, 4, softSerial->println(str));
           delete str;
           break;
+        }
       }
       break;
     case 4: // Ultrasonic sensor
@@ -291,30 +303,73 @@ void dispatchProc() {
           break;
       }
       break;
-    case 5: // Zumo shield
+//    case 5: // Zumo shield
+//      switch (proc) {
+//        case 1: // init
+//          if (zumoMotors == NULL) {
+//            zumoMotors = new ZumoMotors;
+//            debugLog("Created ZumoMotors instance");
+//          }
+//          break;
+//        case 2: // set left speed
+//          si1 = readSignedInt();
+//          if (si1 != 0) {
+//            debugLog(String("setLeftSpeed(") + si1 + ")");
+//          }
+//          zumoMotors->setLeftSpeed(si1);
+//          break;
+//        case 3: // set right speed
+//          si1 = readSignedInt();
+//          if (si1 != 0) {
+//            debugLog(String("setRightSpeed(") + si1 + ")");
+//          }
+//          zumoMotors->setRightSpeed(si1);
+//          break;
+//      }
+//      break;
+    case 6: // Oled Display
       switch (proc) {
         case 1: // init
-          if (zumoMotors == NULL) {
-            zumoMotors = new ZumoMotors;
-            debugLog("Created ZumoMotors instance");
-          }
+          display.begin(SSD1306_SWITCHCAPVCC, readInt());
           break;
-        case 2: // set left speed
-          si1 = readInt();
-          if (si1 != 0) {
-            debugLog(String("setLeftSpeed(") + si1 + ")");
-          }
-          zumoMotors->setLeftSpeed(si1);
+        case 2: // clearDisplay
+          display.clearDisplay();
+          display.setTextSize(1);
+          display.setTextColor(WHITE);
+          display.setCursor(0, 0);
+          display.display(); 
           break;
-        case 3: // set right speed
-          si1 = readInt();
-          if (si1 != 0) {
-            debugLog(String("setRightSpeed(") + si1 + ")");
-          }
-          zumoMotors->setRightSpeed(si1);
+        case 3: { // println
+          char* str = readString();
+          display.println(str);
+          display.display(); 
+          delete str;
+          break;
+        }
+        case 4: // startscrollright
+          b1 = readByte();
+          b2 = readByte();
+          display.startscrollright(b1, b2);
+          break;
+        case 5: // stopscroll
+          display.stopscroll();
+          break;
+        case 6: // startscrolldiagright
+          b1 = readByte();
+          b2 = readByte();
+          display.startscrolldiagright(b1, b2);
+          break;
+        case 7: // startscrollleft
+          b1 = readByte();
+          b2 = readByte();
+          display.startscrollleft(b1, b2);
+          break;
+        case 8: // startscrolldiagleft
+          b1 = readByte();
+          b2 = readByte();
+          display.startscrolldiagleft(b1, b2);
           break;
       }
       break;
   }
 }
-

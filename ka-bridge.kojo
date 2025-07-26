@@ -442,7 +442,7 @@ object UltraSonic {
 
 object ZumoMotors {
     // proxy for ultrasonic sensor
-    // namespace (ns) = 4
+    // namespace (ns) = 5
 
     def init() {
         val command = Array[Byte](2, 5, 1)
@@ -464,6 +464,78 @@ object ZumoMotors {
         writeSignedInt(speed)
     }
 }
+
+object Oled {
+    // proxy for oled display
+    // namespace (ns) = 6 
+
+    def init(i2CAddr: Int) {
+        val i2c = i2CAddr.toShort
+        val command = Array[Byte](4, 6, 1)
+        //                        sz,ns,cmd
+        writeArray(command)
+        writeInt(i2c)
+    }
+
+    def clearDisplay() {
+        val command = Array[Byte](2, 6, 2)
+        //                        sz,ns,cmd
+        writeArray(command)
+    }
+
+    def println(msg: String) {
+        val len = msg.length
+        val command = Array[Byte](2 + 2 + len, 6, 3)
+        //                        sz,ns,cmd
+        writeArray(command)
+        writeInt(len)
+        writeString(msg)
+    }
+
+    def startScrollRight(start: Byte, end: Byte) {
+        val command = Array[Byte](4, 6, 4, start, end)
+        //                        sz,ns,cmd
+        writeArray(command)
+    }
+
+    def stopScroll() {
+        val command = Array[Byte](2, 6, 5)
+        //                        sz,ns,cmd
+        writeArray(command)
+    }
+
+    def startScrollDiagRight(start: Byte, end: Byte) {
+        val command = Array[Byte](4, 6, 6, start, end)
+        //                        sz,ns,cmd
+        writeArray(command)
+    }
+
+//    def sendSignedInt(n: Int) {
+//        val command = Array[Byte](4, 6, 7)
+//        //                        sz,ns,cmd
+//        writeArray(command)
+//        writeSignedInt(n)
+//    }
+
+    def startScrollLeft(start: Byte, end: Byte) {
+        val command = Array[Byte](4, 6, 7, start, end)
+        //                        sz,ns,cmd
+        writeArray(command)
+    }
+
+    def startScrollDiagLeft(start: Byte, end: Byte) {
+        val command = Array[Byte](4, 6, 8, start, end)
+        //                        sz,ns,cmd
+        writeArray(command)
+    }
+
+//    def setTextSize() {
+//        val command = Array[Byte](2, 6, 6)
+//        //                        sz,ns,cmd
+//        writeArray(command)
+//    }
+}
+
 
 val INPUT, LOW = 0.toByte
 val OUTPUT, HIGH = 1.toByte
